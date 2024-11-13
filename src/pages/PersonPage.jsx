@@ -169,7 +169,7 @@ const PersonDetails = () => {
                         },
                       }}
                     >
-                      {personMovies.lenth <= 0 && personMovies?.cast ? (
+                      {personMovies && personMovies?.cast.length > 0 ? (
                         personMovies?.cast?.map((item) => (
                           <Link to={`/movie/${item?.id}}`}>
                             <Box
