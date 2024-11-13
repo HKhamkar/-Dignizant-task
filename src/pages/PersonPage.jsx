@@ -131,7 +131,11 @@ const PersonDetails = () => {
                       mb={2}
                       fontSize={{ xs: "14px" }}
                     >
-                      {`Birth date: ${personDetails?.birthday}`}
+                      {`Birth date: ${
+                        personDetails?.birthday
+                          ? personDetails?.birthday
+                          : "Not found!"
+                      }`}
                     </Typography>
 
                     <Typography
@@ -165,8 +169,7 @@ const PersonDetails = () => {
                         },
                       }}
                     >
-                      {personMovies &&
-                        personMovies?.cast &&
+                      {personMovies.lenth <= 0 && personMovies?.cast ? (
                         personMovies?.cast?.map((item) => (
                           <Link to={`/movie/${item?.id}}`}>
                             <Box
@@ -185,7 +188,16 @@ const PersonDetails = () => {
                               {item?.title}
                             </Box>
                           </Link>
-                        ))}
+                        ))
+                      ) : (
+                        <Typography
+                          variant="body2"
+                          mb={1.5}
+                          fontSize={{ xs: "14px" }}
+                        >
+                          Not found !
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
                 </Grid>
