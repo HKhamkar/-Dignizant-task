@@ -126,6 +126,9 @@ const MovieList = () => {
                 label="Search Movies"
                 InputProps={{
                   ...params.InputProps,
+                  sx: {
+                    paddingRight: "9px !important",
+                  },
                   endAdornment: (
                     <Icon
                       sx={{ cursor: "pointer" }}
