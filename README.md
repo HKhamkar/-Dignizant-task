@@ -1,3 +1,5 @@
+After clone a project then need write command npm i to add node_modules file in you clone project.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
