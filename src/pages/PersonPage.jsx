@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
   Box,
@@ -9,30 +9,28 @@ import {
   Typography,
 } from "@mui/material";
 import avatarPlaceholderImg from "../assets/png/avatar-placeholder.jpg";
-import { API_KEY, BASE_URL, REACT_APP_API_IMG } from "../core/constants";
+import { REACT_APP_API_IMG } from "../core/constants";
 import { toast } from "react-toastify";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getPersonDetailsById,
+  getPersonMoviesById,
+} from "../redux/actions/personAction";
 
 const PersonDetails = () => {
   const { id } = useParams();
-  const [loading, setLoading] = useState(false);
-  const [personDetails, setPersonDetails] = useState(null);
-  const [personMovies, setPersonMovies] = useState(null);
 
-  const getPersonDetails = useCallback((id) => {
-    setLoading(true);
-    axios
-      .get(`${BASE_URL}/person/${id}`, {
-        params: {
-          api_key: API_KEY,
-          language: "en-US",
-        },
-      })
-      .then((response) => {
-        setPersonDetails(response.data);
-      })
+  const dispatch = useDispatch();
+  const { personDetails, personMovies, loading } = useSelector(
+    (state) => state.person
+  );
+
+  const getPersonDetailsApi = useCallback((id) => {
+    dispatch(getPersonDetailsById(id))
+      .unwrap()
+      .then((res) => {})
       .catch((err) => {
-        console.error("Error fetching movies:", err);
+        console.log("err", err);
         toast.error(err.message, {
           position: "top-right",
           autoClose: 5000,
@@ -42,24 +40,15 @@ const PersonDetails = () => {
           draggable: true,
           progress: undefined,
         });
-      })
-      .finally(() => setLoading(false));
+      });
   }, []);
 
-  const getPersonMovies = useCallback((id) => {
-    setLoading(true);
-    axios
-      .get(`${BASE_URL}/person/${id}/movie_credits`, {
-        params: {
-          api_key: API_KEY,
-          language: "en-US",
-        },
-      })
-      .then((response) => {
-        setPersonMovies(response.data);
-      })
+  const getPersonMoviesApi = useCallback((id) => {
+    dispatch(getPersonMoviesById(id))
+      .unwrap()
+      .then((res) => {})
       .catch((err) => {
-        console.error("Error fetching movies:", err);
+        console.log("err", err);
         toast.error(err.message, {
           position: "top-right",
           autoClose: 5000,
@@ -69,14 +58,13 @@ const PersonDetails = () => {
           draggable: true,
           progress: undefined,
         });
-      })
-      .finally(() => setLoading(false));
+      });
   }, []);
 
   useEffect(() => {
     if (id) {
-      getPersonDetails(id);
-      getPersonMovies(id);
+      getPersonDetailsApi(id);
+      getPersonMoviesApi(id);
     }
   }, [id]);
 

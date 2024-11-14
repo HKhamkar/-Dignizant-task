@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useState } from "react";
-import axios from "axios";
 import {
   Container,
   Grid,
@@ -12,33 +11,37 @@ import {
   TextField,
 } from "@mui/material";
 import MovieCard from "../Components/MovieCard";
-import { API_KEY, BASE_URL } from "../core/constants";
 import { toast } from "react-toastify";
 import { CiSearch } from "react-icons/ci";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setPopularMoviePageNo,
+  setTotalPopularMoviesPages,
+} from "../redux/slices/moviesSlice";
+import {
+  getPopularMovieByName,
+  getPopularMovieList,
+} from "../redux/actions/moviesAction";
 
 const MovieList = () => {
-  const [movies, setMovies] = useState([]);
-  const [searchFilter, setSearchFilter] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const dispatch = useDispatch();
+  const {
+    popularMovieList,
+    popularMoviePageNo,
+    totalPopularMoviesPages,
+    loading,
+  } = useSelector((state) => state.movies);
 
-  const getMovieList = useCallback(() => {
-    setLoading(true);
-    axios
-      .get(`${BASE_URL}/movie/popular`, {
-        params: {
-          api_key: API_KEY,
-          language: "en-US",
-          page: currentPage,
-        },
-      })
+  const [searchFilter, setSearchFilter] = useState("");
+
+  const getMovieList = useCallback((popularMoviePageNo) => {
+    dispatch(getPopularMovieList(popularMoviePageNo))
+      .unwrap()
       .then((res) => {
-        setMovies(res.data.results);
-        setTotalPages(res.data.total_pages);
+        dispatch(setTotalPopularMoviesPages(res?.total_pages));
       })
       .catch((err) => {
-        console.error("Error fetching movies:", err.message);
+        console.log("err", err);
         toast.error(err.message, {
           position: "top-right",
           autoClose: 5000,
@@ -48,36 +51,28 @@ const MovieList = () => {
           draggable: true,
           progress: undefined,
         });
-      })
-      .finally(() => setLoading(false));
-  }, [currentPage]);
+      });
+  }, []);
 
   useEffect(() => {
-    getMovieList();
-  }, [getMovieList]);
+    getMovieList(popularMoviePageNo);
+  }, [popularMoviePageNo]);
 
   const handlePageChange = (event, page) => {
-    setCurrentPage(page);
+    dispatch(setPopularMoviePageNo(page));
     window.scrollTo({ top: 0, behavior: "smooth" });
     setSearchFilter("");
   };
 
   const searchClickHandler = async () => {
-    setLoading(true);
     if (searchFilter !== "") {
-      axios
-        .get(`${BASE_URL}/search/movie`, {
-          params: {
-            query: searchFilter,
-            api_key: API_KEY,
-          },
-        })
+      dispatch(getPopularMovieByName(searchFilter))
+        .unwrap()
         .then((res) => {
-          setMovies(res.data.results);
-          setTotalPages(res.data.total_pages);
+          dispatch(setTotalPopularMoviesPages(res?.total_pages));
         })
         .catch((err) => {
-          console.error("Error fetching movies:", err.message);
+          console.log("err", err);
           toast.error(err.message, {
             position: "top-right",
             autoClose: 5000,
@@ -87,16 +82,14 @@ const MovieList = () => {
             draggable: true,
             progress: undefined,
           });
-        })
-        .finally(() => setLoading(false));
+        });
     }
   };
 
   const handleInputChange = (event, newInputValue) => {
     setSearchFilter(newInputValue);
-
     if (newInputValue.length < 1) {
-      getMovieList();
+      getMovieList(popularMoviePageNo);
     }
   };
 
@@ -117,7 +110,9 @@ const MovieList = () => {
           <Autocomplete
             id="free-solo-demo"
             freeSolo
-            options={movies && movies.map((option) => option.title)}
+            options={
+              popularMovieList && popularMovieList.map((option) => option.title)
+            }
             inputValue={searchFilter}
             onInputChange={handleInputChange}
             renderInput={(params) => (
@@ -151,8 +146,8 @@ const MovieList = () => {
         ) : (
           <>
             <Grid container spacing={2}>
-              {movies.length > 0 ? (
-                movies.map((movie) => (
+              {popularMovieList.length > 0 ? (
+                popularMovieList.map((movie) => (
                   <Grid item xs={12} sm={4} md={3} key={movie.id}>
                     <MovieCard movie={movie} />
                   </Grid>
@@ -173,11 +168,11 @@ const MovieList = () => {
               )}
             </Grid>
 
-            {movies.length > 0 && (
+            {popularMovieList.length > 0 && (
               <Box sx={{ display: "flex", justifyContent: "center", my: 4 }}>
                 <Pagination
-                  count={totalPages}
-                  page={currentPage}
+                  count={totalPopularMoviesPages}
+                  page={popularMoviePageNo}
                   onChange={handlePageChange}
                   color="primary"
                 />

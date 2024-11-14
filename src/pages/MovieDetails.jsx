@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import axios from "axios";
 import {
   Box,
   CardMedia,
@@ -8,60 +7,30 @@ import {
   Container,
   Typography,
 } from "@mui/material";
-import { API_KEY, BASE_URL, REACT_APP_API_IMG } from "../core/constants";
+import { REACT_APP_API_IMG } from "../core/constants";
 import PlaceholderImg from "../assets/png/img-placeholder.png";
 import { formatDate } from "../core/utils";
 import { toast } from "react-toastify";
 import CircularProgressWithLabel from "../Components/UserScore";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  getMovieCreditDetailsById,
+  getMovieDetailsById,
+} from "../redux/actions/moviesAction";
 
 function MovieDetails() {
   const { id } = useParams();
-  const [movieDetails, setMovieDetails] = useState(null);
-  const [movieCreditDetails, setMovieCreditDetails] = useState(null);
-  const [loading, setLoading] = useState(false);
-
-  const getMovieDetails = useCallback((id) => {
-    setLoading(true);
-    axios
-      .get(`${BASE_URL}/movie/${id}`, {
-        params: {
-          api_key: API_KEY,
-          language: "en-US",
-        },
-      })
-      .then((response) => {
-        setMovieDetails(response.data);
-      })
-      .catch((err) => {
-        console.error("Error fetching movies:", err);
-        toast.error(err.message, {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-        });
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const dispatch = useDispatch();
+  const { movieDetails, loading, movieCreditDetails } = useSelector(
+    (state) => state.movies
+  );
 
   const getMovieCreditDetails = useCallback((id) => {
-    setLoading(true);
-    axios
-      .get(`${BASE_URL}/movie/${id}/credits`, {
-        params: {
-          api_key: API_KEY,
-          language: "en-US",
-        },
-      })
-      .then((response) => {
-        const allCreditDetails = [...response.data.cast, ...response.data.crew];
-        setMovieCreditDetails(allCreditDetails);
-      })
+    dispatch(getMovieCreditDetailsById(id))
+      .unwrap()
+      .then((res) => {})
       .catch((err) => {
-        console.error("Error fetching movies:", err);
+        console.log("err", err);
         toast.error(err.message, {
           position: "top-right",
           autoClose: 5000,
@@ -71,8 +40,25 @@ function MovieDetails() {
           draggable: true,
           progress: undefined,
         });
-      })
-      .finally(() => setLoading(false));
+      });
+  }, []);
+
+  const getMovieDetails = useCallback((id) => {
+    dispatch(getMovieDetailsById(id))
+      .unwrap()
+      .then((res) => {})
+      .catch((err) => {
+        console.log("err", err);
+        toast.error(err.message, {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      });
   }, []);
 
   useEffect(() => {
@@ -183,8 +169,8 @@ function MovieDetails() {
                         },
                       }}
                     >
-                      {movieCreditDetails?.map((item) => (
-                        <Link to={`/person/${item?.id}`} key={item?.id}>
+                      {movieCreditDetails?.map((item, idx) => (
+                        <Link to={`/person/${item?.id}`} key={idx}>
                           <Box
                             sx={{
                               px: 1.5,
